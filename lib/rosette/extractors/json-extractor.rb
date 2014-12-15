@@ -25,9 +25,9 @@ module Rosette
       protected
 
       def parse(json_content, &blk)
-        parser = JSON::Stream::Parser.new do
-          key(&:key)
-          value { |value_str| value(value_str, blk) }
+        parser = JSON::Stream::Parser.new.tap do |parser|
+          parser.key { |key_str| key(key_str) }
+          parser.value { |value_str| value(value_str, &blk) }
         end
 
         parser << json_content

@@ -6,3 +6,17 @@
       key: cool string
     - meta_key: jelly.beans
       key: popcorn
+  objects.json:
+    - meta_key: foo.bar
+      key: baz
+    - meta_key: hello
+      key: cool string
+    - meta_key: jelly.beans
+      key: popcorn
+  arrays.json:
+    - meta_key: foo.bar
+      key: baz
+    - meta_key: hello
+      key: cool string
+    - meta_key: jelly.beans
+      key: popcorn

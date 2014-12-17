@@ -7,7 +7,6 @@ module Rosette
   module Extractors
 
     class JsonExtractor < Rosette::Core::StaticExtractor
-      attr_reader :open_obj_count, :open_array_count
 
       def extract_each_from(json_content)
         if block_given?
@@ -23,88 +22,35 @@ module Rosette
         false
       end
 
-      protected
-
-      def parse(json_content, &blk)
-        reset
-        parser = JSON::Stream::Parser.new.tap do |parser|
-          parser.key { |key_str| key(key_str) }
-          parser.value { |value_str| value(value_str, &blk) }
-          parser.start_object { start_object }
-          parser.end_object { end_object }
-          parser.start_array { start_array }
-          parser.end_array { end_array }
-        end
-
-        parser << json_content
-      rescue JSON::Stream::ParserError => e
-        raise Rosette::Core::SyntaxError.new('syntax error', e, :json)
-      end
-
-      protected
-
-      def key(key_str)
-        raise NotImplementedError
-      end
-
-      def value(value_str)
-        raise NotImplementedError
-      end
-
-      def start_object
-        raise NotImplementedError
-      end
-
-      def end_object
-        raise NotImplementedError
-      end
-
-      def start_array
-        raise NotImplementedError
-      end
-
-      def end_array
-        raise NotImplementedError
-      end
-
-      def reset
-      end
-
       class KeyValueExtractor < JsonExtractor
         protected
 
-        def key(key_str)
-          @key = key_str
-        end
+        def parse(json_content, &blk)
+          open_obj_count = 0
+          open_array_count = 0
+          key = nil
 
-        def value(value_str)
-          if block_given? && open_array_count.zero? && open_obj_count == 1
-            yield @key, value_str
+          parser = JSON::Stream::Parser.new.tap do |parser|
+            parser.key { |key_str| key = key_str }
+
+            parser.value do |value_str|
+              if block_given? && open_array_count.zero? && open_obj_count == 1
+                yield key, value_str
+              end
+            end
+
+            parser.start_object { open_obj_count += 1 }
+            parser.end_object { open_obj_count -= 1 }
+            parser.start_array { open_array_count += 1 }
+            parser.end_array { open_array_count -= 1 }
           end
+
+          parser << json_content
+        rescue JSON::Stream::ParserError => e
+          raise Rosette::Core::SyntaxError.new('syntax error', e, :json)
         end
 
-        def start_object
-          @open_obj_count += 1
-        end
-
-        def end_object
-          @open_obj_count -= 1
-        end
-
-        def start_array
-          @open_array_count += 1
-        end
-
-        def end_array
-          @open_array_count -= 1
-        end
-
-        def reset
-          @open_obj_count = 0
-          @open_array_count = 0
-        end
       end
-
     end
   end
 end

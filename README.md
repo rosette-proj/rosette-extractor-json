@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/rosette-proj/rosette-extractor-json.svg)](https://travis-ci.org/rosette-proj/rosette-extractor-json) [![Code Climate](https://codeclimate.com/github/rosette-proj/rosette-extractor-json/badges/gpa.svg)](https://codeclimate.com/github/rosette-proj/rosette-extractor-json) [![Test Coverage](https://codeclimate.com/github/rosette-proj/rosette-extractor-json/badges/coverage.svg)](https://codeclimate.com/github/rosette-proj/rosette-extractor-json/coverage)
+
 rosette-extractor-json
 ====================
 
@@ -10,8 +12,6 @@ Extracts translatable strings from JSON files for the Rosette internationalizati
 Then, somewhere in your project:
 
 ```ruby
-# this project must be run under jruby
-require 'jbundler' # or somehow add dependent jars to your CLASSPATH
 require 'rosette/extractors/json-extractor'
 ```
 
@@ -24,22 +24,27 @@ This library is generally meant to be used with the Rosette internationalization
 Let's assume you're configuring an instance of [`Rosette::Server`](https://github.com/rosette-proj/rosette-server). Adding dotted key (rails) support would cause your configuration to look something like this:
 
 ```ruby
+# config.ru
+require 'rosette/core'
 require 'rosette/extractors/json-extractor'
 
-config = Rosette.build_config do |config|
+rosette_config = Rosette.build_config do |config|
   config.add_repo('my_awesome_repo') do |repo_config|
     repo_config.add_extractor('json/key-value') do |extractor_config|
       extractor_config.match_file_extensions(['.json'])
     end
   end
 end
+
+server = Rosette::Server::ApiV1.new(rosette_config)
+run server
 ```
 
 See the documentation contained in [rosette-core](https://github.com/rosette-proj/rosette-core) for a complete list of extractor configuration options in addition to `match_file_extensions`.
 
 ### Standalone Usage
 
-While most of the time rosette-extractor-json will probably be used alongside rosette-server, there may arise use cases where someone might want to use it on its own. The `extract_each_from` method on `KeyValueExtractor` yields `Rosette::Core::Phrase` objects (or returns an enumerator):
+While most of the time rosette-extractor-json will probably be used alongside rosette-server (or similar), there may arise use cases where someone might want to use it on its own. The `extract_each_from` method on `KeyValueExtractor` yields `Rosette::Core::Phrase` objects (or returns an enumerator):
 
 ```ruby
 json_source_code = '{"phrase": "translation"}'
@@ -52,7 +57,7 @@ end
 
 ## Requirements
 
-This project must be run under jRuby. It uses [jbundler](https://github.com/mkristian/jbundler) to manage java dependencies via Maven. Run `gem install jbundler` and `jbundle` in the project root to download and install java dependencies.
+This project must be run under jRuby. It uses [expert](https://github.com/camertron/expert) to manage java dependencies via Maven. Run `bundle exec expert install` in the project root to download and install java dependencies.
 
 ## Running Tests
 
